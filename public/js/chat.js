@@ -1,25 +1,44 @@
 const socket = io()
 
 //Elements
-const $messageaForm = document.querySelector("#message-form")
-const $messageaFormInput = $messageaForm.querySelector('input')
-const $messageaFormButton = $messageaForm.querySelector('button')
+const $messagesForm = document.querySelector("#message-form")
+const $messagesFormInput = $messagesForm.querySelector('input')
+const $messagesFormButton = $messagesForm.querySelector('button')
 const $sendLocationButton = document.querySelector('#send-location')
+const $messages = document.querySelector('#messages')
+
+//templates
+const messagesTemplate = document.querySelector('#message-template').innerHTML
+const messageLocationTemplate = document.querySelector('#messageLocation-template').innerHTML
+
 
 socket.on('message', (message)=>{
     console.log(message)
+    const html = Mustache.render(messagesTemplate, {
+        message: message.text,
+        createdAt: moment(message.createdAt).format('h:mm A')
+    })
+    $messages.insertAdjacentHTML('beforeend', html)
+})
+socket.on('locationMessage', (message)=>{
+    console.log(message)
+    const html = Mustache.render(messageLocationTemplate, {
+        url: message.url,
+        createdAt: moment(message.createdAt).format('h:mm A')
+    })
+    $messages.insertAdjacentHTML('beforeend', html)
 })
 
-$messageaForm.addEventListener('submit', (e) => {
+$messagesForm.addEventListener('submit', (e) => {
     e.preventDefault()
-    $messageaFormButton.setAttribute('disabled', 'disabled')
+    $messagesFormButton.setAttribute('disabled', 'disabled')
 
     const message = e.target.elements.message.value
 
     socket.emit('sendMessage', message, (error)=>{
-        $messageaFormButton.removeAttribute('disabled')
-        $messageaFormInput.value = ''
-        $messageaFormInput.focus()
+        $messagesFormButton.removeAttribute('disabled')
+        $messagesFormInput.value = ''
+        $messagesFormInput.focus()
         if(error){
             return console.log(error)
         }
